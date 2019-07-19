@@ -1,0 +1,22 @@
+{
+    "name": "bsonpp",
+    "description": "Stack based C++ BSON serialization and parsing library",
+    "keywords": "bson, library, stack, serialization, parsing",
+    "authors": [
+        {
+            "name": "Tim Stableford",
+            "email": "bsonpp@tim.t3s.uk",
+            "url": "https://tstableford.co.uk",
+            "maintainer": true
+        }
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/timstableford/bsonpp"
+    },
+    "version": "1.0.0",
+    "license": "MIT",
+    "frameworks": "*",
+    "platforms": "*",
+    "includeDir": "src/"
+}
