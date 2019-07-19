@@ -5,7 +5,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'mkdir -p build'
-                sh 'cd build'
+                dir 'build'
                 sh 'cmake ..'
                 sh 'make -j8'
             }
@@ -13,7 +13,7 @@ pipeline {
 
         stage('Test') {
             steps {
-                sh 'cd build'
+                dir 'build'
                 sh './BSONPP_Test'
             }
         }
