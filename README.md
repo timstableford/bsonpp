@@ -113,3 +113,13 @@ if (doc.exists("num")) {
 ### Clearing/Resetting an Object
 An empty BSON object looks like this as a byte array [0x05, 0x00, 0x00, 0x00, 0x00]. What this means is that if you pass in a zeroed array bad things will happen. To minimise the number of bad things happening the default constructor for BSONPP initialises the object. This means that when parsing a buffer you must be sure to pass `false` as the last argument of the constructor.
 An object can also manually be reset by calling `.clear()`.
+
+## Testing
+Most of the tests are done with googletest on Linux but a more limited set can be run on devices.
+
+### Linux
+`rm -rf build && mkdir build && (cd build && cmake -DBUILD_TESTS=ON .. && make -j8 && ./BSONPP_Test)`
+
+### Arduino/ESP8266
+`pio test -e uno --verbose`
+`pio test -e wemos_d1_mini --verbose`

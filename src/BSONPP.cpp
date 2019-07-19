@@ -1,5 +1,4 @@
 #include <string.h>
-
 #include "BSONPP.h"
 #include "NetworkUtil.h"
 #include "IEEE754tools.h"
@@ -19,11 +18,14 @@ void BSONPP::clear() {
 }
 
 int32_t BSONPP::getSize() {
-    return letoh32(*reinterpret_cast<int32_t *>(m_buffer));
+    int32_t size = 0;
+    memcpy(&size, m_buffer, sizeof(int32_t));
+    return letoh32(size);
 }
 
 void BSONPP::setSize(int32_t size) {
-    *reinterpret_cast<int32_t *>(m_buffer) = htole32(size);
+    int32_t swapped = htole32(size);
+    memcpy(m_buffer, &swapped, sizeof(int32_t));
 }
 
 uint8_t *BSONPP::getBuffer() {
@@ -122,10 +124,14 @@ int32_t BSONPP::append(const char *key, bool val) {
 
 int32_t BSONPP::get(const char *key, int32_t *val) {
     int32_t offset = this->getOffset(key, BSONPP_INT32);
+
     if (offset < 0) {
         return offset;
     }
-    *val = letoh32(*reinterpret_cast<int32_t *>(BSONPP::getData(m_buffer + offset)));
+
+    memcpy(val, BSONPP::getData(m_buffer + offset), sizeof(int32_t));
+    *val = letoh32(*val);
+
     return BSONPP_SUCCESS;
 }
 
@@ -138,11 +144,14 @@ int32_t BSONPP::get(const char *key, int64_t *val) {
 
     switch (BSONPP::getType(m_buffer + offset)) {
         case BSONPP_INT32:
-            *val = letoh32(*reinterpret_cast<int32_t *>(data));
+            int32_t val32;
+            memcpy(&val32, data, sizeof(int32_t));
+            *val = letoh32(val32);
             return BSONPP_SUCCESS;
         case BSONPP_INT64: // Fallthrough
         case BSONPP_DATETIME:
-            *val = letoh64(*reinterpret_cast<int64_t *>(data));
+            memcpy(val, data, sizeof(int64_t));
+            *val = letoh64(*val);
             return BSONPP_SUCCESS;
         default:
             return BSONPP_INCORRECT_TYPE;
@@ -159,7 +168,7 @@ int32_t BSONPP::get(const char *key, double *val) {
     if (sizeof(double) == 4) {
         *val = doublePacked2Float(data);
     } else {
-        *val = *(reinterpret_cast<double *>(data));
+        memcpy(val, data, sizeof(double));
     }
     return BSONPP_SUCCESS;
 }
@@ -198,12 +207,15 @@ int32_t BSONPP::get(const char *key, uint8_t **val, int32_t *length) {
         return offset;
     }
 
+    uint8_t *data = BSONPP::getData(m_buffer + offset);
+
     if (length != nullptr) {
-        *length = *reinterpret_cast<int32_t *>(BSONPP::getData(m_buffer + offset));
+        memcpy(length, data, sizeof(int32_t));
+        *length = letoh32(*length);
     }
 
     // +sizeof(int32_t) to skip length, +1 to skip subtype
-    *val = reinterpret_cast<uint8_t *>(BSONPP::getData(m_buffer + offset) + sizeof(int32_t)) + 1;
+    *val = reinterpret_cast<uint8_t *>(data + sizeof(int32_t)) + 1;
 
     return BSONPP_SUCCESS;
 }
@@ -235,7 +247,13 @@ int32_t BSONPP::appendInternal(const char *key, uint8_t type, const uint8_t *dat
             break;
     }
 
-    if (this->getSize() + strlen(key) + 1 + sizeof(type) + length + (includeLength ? sizeof(int32_t) : 0) > static_cast<uint32_t>(m_length)) {
+    // +1 for key null terminator
+    int32_t sizeAfter = this->getSize() + strlen(key) + 1 + sizeof(type) + length;
+    if (includeLength) {
+        sizeAfter += sizeof(int32_t);
+    }
+
+    if (sizeAfter > m_length) {
         return BSONPP_OUT_OF_SPACE;
     }
 
@@ -245,9 +263,10 @@ int32_t BSONPP::appendInternal(const char *key, uint8_t type, const uint8_t *dat
 
     // Minus one for the null terminator of the BSON object
     int32_t offset = this->getSize() - 1;
-    *reinterpret_cast<int32_t *>(m_buffer + offset) = type;
-    offset++;
+    // Set the type.
+    m_buffer[offset++] = type;
 
+    // Copy the key
     memcpy(m_buffer + offset, key, strlen(key) + 1);
     offset += strlen(key) + 1;
 
@@ -271,16 +290,19 @@ int32_t BSONPP::appendInternal(const char *key, uint8_t type, const uint8_t *dat
 }
 
 int32_t BSONPP::getTypeSize(uint8_t type, uint8_t *data) {
+    int32_t cache = 0;
     switch (type) {
         case BSONPP_DOUBLE:
             return 8;
         case BSONPP_STRING: // Fallthrough
         case BSONPP_DOCUMENT: // Fallthrough
         case BSONPP_ARRAY:
-            return letoh32(*reinterpret_cast<int32_t *>(data)) + sizeof(int32_t);
+            memcpy(&cache, data, sizeof(int32_t));
+            return letoh32(cache) + sizeof(int32_t);
         case BSONPP_BINARY:
             // +1 for subtype
-            return letoh32(*reinterpret_cast<int32_t *>(data)) + sizeof(int32_t) + 1;
+            memcpy(&cache, data, sizeof(int32_t));
+            return letoh32(cache) + sizeof(int32_t) + 1;
         case BSONPP_INT32:
             return sizeof(int32_t);
         case BSONPP_INT64: // Fallthrough

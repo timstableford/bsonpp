@@ -59,7 +59,7 @@ typedef union _DBLCONV
     // IEEEdouble p;
     _DBL p;
     double d;           // !! is a 32bit float for UNO.
-    uint8_t b[4];
+    uint8_t b[8];
 } _DBLCONV;
 
 
@@ -79,7 +79,7 @@ void float2DoublePacked(float number, uint8_t* bar)
     dbl.p.e = fl.p.e-127 +1023;  // exponent adjust
     dbl.p.m = fl.p.m;
 
-    for (int i=0; i<8; i++)
+    for (unsigned int i=0; i<8; i++)
     {
         bar[i] = dbl.b[i];
     }
@@ -95,7 +95,7 @@ float doublePacked2Float(uint8_t* bar)
     _FLOATCONV fl;
     _DBLCONV dbl;
 
-    for (int i=0; i<8; i++)
+    for (unsigned int i=0; i<8; i++)
     {
         dbl.b[i] = bar[i];
     }

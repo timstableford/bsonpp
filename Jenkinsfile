@@ -4,11 +4,18 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                sh 'mkdir -p build'
-                dir('build') {
-                    sh 'cmake -DBUILD_TESTS=ON ..'
-                    sh 'make -j8'
-                }
+                parallel(
+                    'PlatformIO': {
+                        sh 'pio run'
+                    },
+                    'Linux': {
+                        sh 'mkdir -p build'
+                        dir('build') {
+                            sh 'cmake -DBUILD_TESTS=ON ..'
+                            sh 'make -j8'
+                        }
+                    },
+                )
             }
         }
 
