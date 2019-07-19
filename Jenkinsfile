@@ -6,7 +6,7 @@ pipeline {
             steps {
                 sh 'mkdir -p build'
                 dir('build') {
-                    sh 'cmake ..'
+                    sh 'cmake -DBUILD_TESTS=ON ..'
                     sh 'make -j8'
                 }
             }
