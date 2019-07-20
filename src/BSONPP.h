@@ -31,6 +31,7 @@ public:
 
     int32_t getSize();
     uint8_t *getBuffer();
+    int32_t getBufferSize();
     void clear();
     bool exists(const char *key);
     // Various functions for easy iteration.

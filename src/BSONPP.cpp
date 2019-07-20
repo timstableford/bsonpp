@@ -32,6 +32,10 @@ uint8_t *BSONPP::getBuffer() {
     return m_buffer;
 }
 
+int32_t BSONPP::getBufferSize() {
+    return m_length;
+}
+
 bool BSONPP::exists(const char *key) {
     return this->getOffset(key) > 0;
 }
