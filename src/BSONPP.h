@@ -1,3 +1,6 @@
+#ifndef __BSONPP_H__
+#define __BSONPP_H__
+
 #include <stdint.h>
 
 #define BSONPP_SUCCESS (0)
@@ -68,3 +71,5 @@ private:
     uint8_t *m_buffer;
     int32_t m_length;
 };
+
+#endif // __BSONPP_H__
