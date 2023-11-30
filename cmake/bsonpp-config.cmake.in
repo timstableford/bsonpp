@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+set_and_check(bsonpp_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
+#set_and_check(bsonpp_SYSCONFIG_DIR "@PACKAGE_SYSCONFIG_INSTALL_DIR@")
+set_and_check(bsonpp_LIBRARY_DIRS "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_LIBDIR@")
+set(bsonpp_LIBRARIES "@PROJECT_NAME@")
+
+check_required_components(bsonpp)
